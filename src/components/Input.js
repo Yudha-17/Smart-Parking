@@ -22,10 +22,6 @@ const Input = ({
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.content}>
-        {
-          icon ? <FAIcon name={icon} size={26} color={colorPrimary} /> : null
-        }
-        <Gap width={7} />
         <TextInput
           onFocus={onFocusForm}
           onBlur={onBlurForm}
@@ -33,7 +29,11 @@ const Input = ({
           secureTextEntry={secureTextEntry}
           value={value}
           onChangeText={onChangeText}
-        />
+          />
+          <Gap width={10} />
+          {
+            icon ? <FAIcon name={icon} size={26} color={colorPrimary} /> : null
+          }
       </View>
     </View>
   );

@@ -5,10 +5,17 @@ import {colorFonts, colorTheme} from '../styles/Colors';
 import {APP_VERSION} from '../config';
 import Gap from '../components/Gap';
 import Indicator from '../components/Indicator';
+import { ASGet } from '../utils';
 
 const Splash = ({navigation}) => {
   setTimeout(async () => {
-    navigation.replace('LoginScreen');
+    const token = await ASGet('token');
+    // User sudah login
+    if (token != null) {
+      navigation.replace('HomeScreen');
+    } else {
+      navigation.replace('LoginScreen');
+    }
   }, 2700);
 
   return (

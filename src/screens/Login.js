@@ -2,51 +2,69 @@ import React, {useState} from 'react';
 import {
   Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
-import axios from 'axios';
 import Gap from '../components/Gap';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import {colorFonts, colorInputBlack, colorLabel, colorTheme} from '../styles/Colors';
-import {API_BASE_URL, APP_NAME, APP_VERSION} from '../config';
-import {ASSet, showError, showInfo, showSuccess} from '../utils';
+import {APP_NAME, APP_VERSION} from '../config';
+import {ASSet} from '../utils';
 import Card from '../components/Card';
 
 const Login = ({navigation}) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [userName, setUserName] = useState('');
+  const [Plat, setPlat] = useState('');
+  const [Email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const login = async () => {
-    navigation.replace('HomeScreen');
-    // setIsLoading(true);
+  const AuthLogin = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCxGuh5V1vVt2Y_Do0SJOpY9yjFfi_BPys", {
+        method:"POST",
+        headers: {
+          'Content-type' : 'application/JSON'
+        },
+        body:JSON.stringify({
+          "displayName":userName,
+          "email":Email,
+          "password":password,
+          "returnSecureToken":true
+        })
+      })
+      
+      const resData = await response.json();
+      console.log("Token : ", response.ok);
+      console.log("ResData : ", resData);
+      const uid = await resData.localId;
 
-    // const form = {
-    //   email: userName,
-    //   password,
-    // };
-
-    // await axios.post(`${API_BASE_URL}users?per_page=20`)
-    //     .then((response) => {
-    //       if (response && response.status === 200) {
-    //         if (response.data.token) {
-    //           ASSet('token', response.data.token);
-    //           navigation.replace('HomeScreen');
-    //         }
-    //       }
-    //     })
-    //     .catch((error) => {
-    //       console.log('Error : ', error);
-    //       Alert.alert('Login gagal', 'Username / Password Salah.!');
-    //       showError('Password Salah');
-    //     })
-    //     .finally(() => {
-    //       setIsLoading(false);
-    //     });
+      if (response.ok) {
+        ASSet('token', resData.idToken);
+        const request = await fetch("https://smart-parking-bd987-default-rtdb.firebaseio.com/data1/"+uid+".json")
+        const resPayload = await request.json();
+        console.log("Data : ", resPayload);
+        await ASSet('userName', resPayload.name);
+        await ASSet('email', resPayload.email);
+        await ASSet('plat', resPayload.plat);
+        await ASSet('status', resPayload.status);
+        navigation.navigate('HomeScreen');
+      }
+      else {
+        Alert.alert('Email/Password Anda Salah');
+      }
+      setIsLoading(false);
+    }
+    catch (error) {
+      setIsLoading(false);
+      console.log('Error adalah : ', error);
+    } 
   };
 
   const registration = () => {
     navigation.navigate('RegistrationScreen');
   };
+
+  
 
   return (
     <ScrollView style={styles.scroll}>
@@ -62,9 +80,9 @@ const Login = ({navigation}) => {
           <Input
             label="Email"
             icon="user"
-            value={userName}
+            value={Email}
             onChangeText={(value) => {
-              setUserName(value);
+              setEmail(value);
             }}
           />
           <Gap height={20} />
@@ -81,7 +99,7 @@ const Login = ({navigation}) => {
           <Button
             title="MASUK"
             isLoading={isLoading}
-            onPress={login}
+            onPress={AuthLogin}
           />
           <Button
             title="DAFTAR"
